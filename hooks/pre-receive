@@ -1,0 +1,21 @@
+#!/bin/bash
+
+echo "puts ('a'..'z').to_a.shuffle[0,25].join" > file_name_generator.rb
+TMP_DIRECTORY=$(ruby file_name_generator.rb)
+mkdir /tmp/$TMP_DIRECTORY
+/config-parser.rb $TMP_DIRECTORY
+cd /tmp/$TMP_DIRECTORY
+
+APPLICATION_DIR=/apps/$APPLICATION_NAME
+
+docker build -t $APPLICATION_NAME --build-arg BUILD_DIR=$APPLICATION_DIR .
+# stop and remove running containers for $APPLICATION_NAME
+docker run -d $APPLICATION_NAME
+CONTAINER_ID=$(docker ps | grep $APPLICATION_NAME | sed -n 1,1p | awk '{print $1}')
+docker exec $CONTAINER_ID rake assets:precompile
+mkdir -p /application/assets
+docker cp $CONTAINER_ID:/$APPLICATION_NAME/public/assets /application
+
+
+cd /app.git
+rm -r /tmp/$TMP_DIRECTORY
