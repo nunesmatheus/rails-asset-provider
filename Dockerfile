@@ -45,6 +45,7 @@ EXPOSE 80
 
 # NGINX setup
 COPY nginx-default.conf /etc/nginx/conf.d/default.conf
+COPY proxy.conf /etc/nginx/conf.d/proxy.conf
 RUN rm /etc/nginx/sites-enabled/default
 
 # Let's Encrypt setup for free SSL
