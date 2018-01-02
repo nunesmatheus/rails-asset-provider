@@ -11,6 +11,8 @@ RUN sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so
 ENV NOTVISIBLE "in users profile"
 RUN echo "export VISIBLE=now" >> /etc/profile
 
+RUN dpkg-reconfigure openssh-server
+
 # Install docker for building images to update deployment
 ENV DOCKER_API_VERSION 1.23
 RUN apt-get install -y \
@@ -45,7 +47,23 @@ EXPOSE 80
 COPY nginx-default.conf /etc/nginx/conf.d/default.conf
 RUN rm /etc/nginx/sites-enabled/default
 
-RUN dpkg-reconfigure openssh-server
+# Let's Encrypt setup for free SSL
+RUN git clone https://github.com/letsencrypt/letsencrypt /root/temp/letsencrypt
+RUN cp /root/temp/letsencrypt/letsencrypt-auto /usr/bin/letsencrypt-auto
+RUN letsencrypt-auto register --no-self-upgrade --agree-tos --noninteractive --email team@minestore.com.br
+RUN mkdir -p /var/www/letsencrypt
+RUN mkdir -p /etc/letsencrypt/live
+RUN mkdir -p /etc/letsencrypt/conf
+
+# Set weekly cronjob to renew certificates
+COPY renew-certs.sh /renew-certs.sh
+RUN echo "0 10 * * 1 root /renew-certs.sh" > /cronjob_info.txt
+RUN crontab /cronjob_info.txt
+
+
+COPY renew-certs.sh /renew-certs.sh
+RUN echo "0 10 * * 1 root /renew-certs.sh" > /cronjob_info.txt
+RUN crontab /cronjob_info.txt
 
 CMD ["/sbin/my_init"]
 

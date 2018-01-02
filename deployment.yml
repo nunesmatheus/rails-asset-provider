@@ -13,7 +13,7 @@ spec:
     spec:
       containers:
       - name: asset-provider
-        image: gcr.io/<project>/<tag>
+        image: gcr.io/cloud-vibes/asset-provider:a60d57535695a5e33f742189051dc5baaaa9e7b0
         ports:
           - containerPort: 22
         securityContext:
