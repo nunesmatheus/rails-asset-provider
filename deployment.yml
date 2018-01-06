@@ -13,9 +13,12 @@ spec:
     spec:
       containers:
       - name: asset-provider
-        image: gcr.io/cloud-vibes/asset-provider:a60d57535695a5e33f742189051dc5baaaa9e7b0
+        image: gcr.io/$GCP_PROJECT/asset-provider:latest
         ports:
           - containerPort: 22
+        volumeMounts:
+          - name: certificates-volume
+            mountPath: "/etc/letsencrypt/"
         securityContext:
           privileged: true
         volumeMounts:
@@ -25,3 +28,7 @@ spec:
         - name: docker-sock
           hostPath:
               path: /var/run/docker.sock
+        - name: certificates-volume
+          gcePersistentDisk:
+            pdName: application-certificates # This should be the name on an already created GCP's Compute Engine Disk
+            fsType: ext4
